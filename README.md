@@ -42,3 +42,17 @@ docker-compose exec web rails db:create db:migrate
 * 開発環境のセットアップには Docker と Docker Compose を使用しています
 * PostgreSQL をデータベースとして使用しています
 * テストの実行方法: `rails test`
+
+## CI/CD構成
+
+### GitHub Actions
+
+このプロジェクトでは、GitHub Actionsを使用して継続的インテグレーション（CI）を実装しています。
+すべてのプッシュおよびプルリクエストに対して、以下のテストが自動的に実行されます：
+
+1. Dockerコンテナのビルドと起動
+2. テスト用データベースの作成
+3. テスト用データベースのマイグレーション
+4. テストの実行
+
+GitHub Actionsの設定ファイルは `.github/workflows/test.yml` にあります。実行環境はDocker Composeを使用しているため、ローカル開発環境と同じ構成でテストが実行されます。

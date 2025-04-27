@@ -1,0 +1,35 @@
+name: Rails テスト (Docker)
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      RAILS_ENV: test
+      DATABASE_PASSWORD: postgres
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Dockerのセットアップ
+      uses: docker/setup-buildx-action@v1
+
+    - name: Docker Composeでコンテナをビルドして起動
+      run: docker-compose up --build -d
+
+    - name: Dockerコンテナの状態確認
+      run: docker-compose ps
+
+    - name: テスト用データベースの作成
+      run: docker-compose exec -T web rails db:create
+
+    - name: テスト用データベースのマイグレーション
+      run: docker-compose exec -T web rails db:migrate
+
+    - name: テストの実行
+      run: docker-compose exec -T web rails test
