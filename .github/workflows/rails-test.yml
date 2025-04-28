@@ -11,18 +11,15 @@ jobs:
       RAILS_ENV: test
       DATABASE_PASSWORD: postgres
     steps:
-      - uses: actions/checkout@v2
-      - name: Dockerのセットアップ
-        uses: docker/setup-buildx-action@v2
-      - name: Docker Composeでコンテナをビルドして起動
+      - uses: actions/checkout@v3
+      - uses: docker/setup-buildx-action@v2
+      - name: Build & up containers
         run: docker compose up --build -d
-      - name: Dockerコンテナの状態確認
-        run: docker compose ps
-      - name: テスト用データベースの作成
-        run: docker compose exec -T web rails db:create
-      - name: テスト用データベースのマイグレーション
-        run: docker compose exec -T web rails db:migrate
-      - name: テストの実行
+      - name: Prepare test DB
+        run: |
+          docker compose exec -T web rails db:create
+          docker compose exec -T web rails db:migrate
+      - name: Run tests
         run: docker compose exec -T web rails test
 
   deploy:
@@ -31,22 +28,15 @@ jobs:
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
     env:
       HEROKU_APP:     ${{ secrets.HEROKU_APP_NAME }}
-      HEROKU_EMAIL:   ${{ secrets.HEROKU_EMAIL }}
       HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+
       - name: Install Heroku CLI
         run: curl https://cli-assets.heroku.com/install-ubuntu.sh | sh
-      - name: Login to Heroku Container Registry
+
+      - name: Push to Heroku (buildpack)
         run: |
-          echo "$HEROKU_API_KEY" | \
-          docker login --username=$HEROKU_EMAIL --password-stdin registry.heroku.com
-      - name: Build Docker image
-        run: docker build -t registry.heroku.com/$HEROKU_APP/web .
-      - name: Push image to Heroku
-        run: docker push registry.heroku.com/$HEROKU_APP/web
-      - name: Release image on Heroku
-        run: heroku container:release web --app $HEROKU_APP
-      - name: Run database migrations
-        run: heroku run --app $HEROKU_APP rails db:migrate
+          heroku git:remote -a $HEROKU_APP
+          git push heroku HEAD:main --force
