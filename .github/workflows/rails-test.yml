@@ -28,7 +28,7 @@ jobs:
   deploy:
     needs: test
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
     env:
       HEROKU_APP:     ${{ secrets.HEROKU_APP_NAME }}
       HEROKU_EMAIL:   ${{ secrets.HEROKU_EMAIL }}
