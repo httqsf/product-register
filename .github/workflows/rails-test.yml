@@ -14,7 +14,7 @@ jobs:
       DATABASE_PASSWORD: postgres
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
 
     - name: Dockerのセットアップ
       uses: docker/setup-buildx-action@v1
