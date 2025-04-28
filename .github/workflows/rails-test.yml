@@ -36,6 +36,9 @@ jobs:
       - name: Install Heroku CLI
         run: curl https://cli-assets.heroku.com/install-ubuntu.sh | sh
 
+      - name: Create ~/.netrc (Heroku auth)
+        run: heroku auth:token
+
       - name: Push to Heroku (buildpack)
         run: |
           heroku git:remote -a $HEROKU_APP
