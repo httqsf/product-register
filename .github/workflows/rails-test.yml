@@ -21,25 +21,3 @@ jobs:
           docker compose exec -T web rails db:migrate
       - name: Run tests
         run: docker compose exec -T web rails test
-
-  deploy:
-    needs: test
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
-    env:
-      HEROKU_APP:     ${{ secrets.HEROKU_APP_NAME }}
-      HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Install Heroku CLI
-        run: curl https://cli-assets.heroku.com/install-ubuntu.sh | sh
-
-      - name: Create ~/.netrc (Heroku auth)
-        run: heroku auth:token
-
-      - name: Push to Heroku (buildpack)
-        run: |
-          heroku git:remote -a $HEROKU_APP
-          git push heroku HEAD:main --force
